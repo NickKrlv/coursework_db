@@ -51,12 +51,12 @@ def create_table():
     conn.autocommit = True
     cur = conn.cursor()
 
-    cur.execute("DROP DATABASE IF EXISTS course_work_5")
-    cur.execute("CREATE DATABASE course_work_5")
+    cur.execute("DROP DATABASE IF EXISTS coursework_db")
+    cur.execute("CREATE DATABASE coursework_db")
 
     conn.close()
 
-    conn = psycopg2.connect(host="localhost", database="course_work_5",
+    conn = psycopg2.connect(host="localhost", database="coursework_db",
                             user="postgres", password="12345")
     with conn.cursor() as cur:
         cur.execute("""
