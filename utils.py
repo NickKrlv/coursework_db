@@ -49,13 +49,10 @@ def create_tables():
     conn = psycopg2.connect(host="localhost", database="coursework_db",
                             user="postgres", password="5r36d6ft")
 
-    conn.autocommit = True
-    cur = conn.cursor()
+    with conn.cursor() as cur:
+        cur.execute('DROP TABLE IF EXISTS vacancies, employers CASCADE;')
 
-    cur.execute("DROP DATABASE IF EXISTS coursework_db")
-    cur.execute("CREATE DATABASE coursework_db")
-
-    conn.close()
+    conn.commit()
 
     with conn.cursor() as cur:
         cur.execute("""
@@ -74,6 +71,7 @@ def create_tables():
                     vacancies_url TEXT,
                     employer_id INTEGER REFERENCES employers(employer_id)
                     )""")
+    conn.commit()
     conn.close()
 
 
@@ -107,4 +105,7 @@ def add_to_table(employers_list):
                             (v['vacancy_id'], v['vacancies_name'], v['payment'],
                              v['requirement'], v['vacancies_url'], v['employer_id']))
 
+    conn.commit()
+    conn.close()
 
+add_to_table([1740, 15478, 8620, 3529, 78638, 4006, 4504679, 561525, 64174, 8642172])
