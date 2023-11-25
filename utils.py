@@ -108,5 +108,3 @@ def add_to_table(employers_list):
                              v['requirement'], v['vacancies_url'], v['employer_id']))
 
 
-employers_list = [1740, 15478, 8620, 3529, 78638, 4006, 4504679, 561525, 64174, 8642172]
-add_to_table(employers_list)
