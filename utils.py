@@ -1,5 +1,6 @@
 import psycopg2
 import requests
+from pprint import pprint
 
 
 def get_vacancies(employer_id):
@@ -23,8 +24,7 @@ def get_vacancies(employer_id):
             'vacancies_url': item['alternate_url'],
             'employer_id': employer_id
         }
-        if hh_vacancies['payment'] is not None:
-            vacancies_data.append(hh_vacancies)
+        vacancies_data.append(hh_vacancies)
 
         return vacancies_data
 
@@ -43,11 +43,12 @@ def get_employer(employer_id):
     return hh_company
 
 
-def create_table():
-    """Создание БД, созданение таблиц"""
+def create_tables():
+    """Создание таблиц"""
 
-    conn = psycopg2.connect(host="localhost", database="postgres",
-                            user="postgres", password="12345")
+    conn = psycopg2.connect(host="localhost", database="coursework_db",
+                            user="postgres", password="5r36d6ft")
+
     conn.autocommit = True
     cur = conn.cursor()
 
@@ -56,8 +57,6 @@ def create_table():
 
     conn.close()
 
-    conn = psycopg2.connect(host="localhost", database="coursework_db",
-                            user="postgres", password="12345")
     with conn.cursor() as cur:
         cur.execute("""
                     CREATE TABLE employers (
@@ -75,35 +74,38 @@ def create_table():
                     vacancies_url TEXT,
                     employer_id INTEGER REFERENCES employers(employer_id)
                     )""")
-    conn.commit()
     conn.close()
 
 
 def add_to_table(employers_list):
-    """Заполнение базы данных компании и вакансии"""
+    """Добавление данных в таблицу"""
 
-    with psycopg2.connect(host="localhost", database="coursework_db",
-                          user="postgres", password="5r36d6ft") as conn:
-        with conn.cursor() as cur:
-            cur.execute('TRUNCATE TABLE employers, vacancies RESTART IDENTITY;')
+    conn = psycopg2.connect(database="coursework_db",
+                            user="postgres",
+                            password="5r36d6ft",
+                            host="127.0.0.1",
+                            port="5432")
 
-            for employer in employers_list:
-                employer_list = get_employer(employer)
-                cur.execute('INSERT INTO employers (employer_id, company_name, open_vacancies) '
-                            'VALUES (%s, %s, %s) RETURNING employer_id',
-                            (employer_list['employer_id'], employer_list['company_name'],
-                             employer_list['open_vacancies']))
+    conn.autocommit = True
 
-            for employer in employers_list:
-                vacancy_list = get_vacancies(employer)
-                for v in vacancy_list:
-                    cur.execute('INSERT INTO vacancies (vacancy_id, vacancies_name, '
-                                'payment, requirement, vacancies_url, employer_id) '
-                                'VALUES (%s, %s, %s, %s, %s, %s)',
-                                (v['vacancy_id'], v['vacancies_name'], v['payment'],
-                                 v['requirement'], v['vacancies_url'], v['employer_id']))
+    with conn.cursor() as cur:
+        cur.execute('TRUNCATE TABLE employers, vacancies RESTART IDENTITY;')
 
-        conn.commit()
+        for employer in employers_list:
+            employer_list = get_employer(employer)
+            cur.execute('INSERT INTO employers (employer_id, company_name, open_vacancies) '
+                        'VALUES (%s, %s, %s) RETURNING employer_id',
+                        (employer_list['employer_id'], employer_list['company_name'],
+                         employer_list['open_vacancies']))
+
+        for employer in employers_list:
+            vacancy_list = get_vacancies(employer)
+            for v in vacancy_list:
+                cur.execute('INSERT INTO vacancies (vacancy_id, vacancies_name, '
+                            'payment, requirement, vacancies_url, employer_id) '
+                            'VALUES (%s, %s, %s, %s, %s, %s)',
+                            (v['vacancy_id'], v['vacancies_name'], v['payment'],
+                             v['requirement'], v['vacancies_url'], v['employer_id']))
 
 
 employers_list = [1740, 15478, 8620, 3529, 78638, 4006, 4504679, 561525, 64174, 8642172]
